@@ -1,0 +1,54 @@
+[package]
+name = "dynbinseq"
+version = "0.1.0"
+authors = ["Pierre Marijon <pierre@marijon.fr>"]
+edition = "2021"
+description = "A dynamic representation of biological sequence"
+rust-version = "1.64"
+
+homepage = "https://github.com/natir/dynbinseq"
+repository = "https://github.com/natir/dynbinseq"
+documentation = "https://natir.github.io/dynbinseq/dynbinseq"
+
+readme = "Readme.md"
+license-file = "LICENSE"
+
+
+[dependencies]
+petgraph       = { version = "0.6" }
+bitfield       = { version = "0.15" }
+cocktail       = { git = "https://github.com/natir/cocktail.git"}
+
+# Error management
+thiserror      = { version = "1" }
+
+
+# Logging and error management
+log            = { version = "0.4" }
+
+
+[dev-dependencies]
+# Generate test data
+biotest        = { version = "0.2", features = ["sequence"] }
+
+# Benchmark
+criterion      = { version = "0.5" }
+
+# CLI management
+clap           = { version = "4", features = ["derive"] }
+
+# Logging management
+stderrlog      = { version = "0.5" }
+
+
+[profile.release]
+lto = 'thin'
+opt-level = 3
+overflow-checks = false
+panic = 'abort'
+incremental = false
+
+
+[profile.profiling]
+inherits = "release"
+debug = true

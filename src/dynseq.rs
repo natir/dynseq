@@ -27,12 +27,15 @@ impl DynSeq {
             .map(|x| x * node_length)
             .collect();
 
-        for subseq in seq.chunks(node_length) {
-            graph.add_node(node::Node::new(subseq).expect("unreacheable subseq have good size"));
-        }
+        let edges: Vec<_> = seq
+            .chunks(node_length)
+            .map(|subseq| {
+                graph.add_node(node::Node::new(subseq).expect("unreacheable subseq have good size"))
+            })
+            .collect();
 
-        for a in 0..(seq.len() / node_length) {
-            graph.add_edge(graph.from_index(a), graph.from_index(a + 1), ());
+        for edge in edges.windows(2) {
+            graph.add_edge(edge[0], edge[1], ());
         }
 
         Ok(Self {
@@ -54,7 +57,7 @@ impl DynSeq {
         seq
     }
 
-    /// Get local a value
+    /// Get a value
     pub fn get(&self, index: usize) -> core::option::Option<u8> {
         let node_after = self
             .node_index2pos
@@ -97,6 +100,10 @@ mod tests {
         generator.record(&mut seq, &mut rng).unwrap();
 
         let dynseq = DynSeq::new(&seq, 24)?;
+        let out: Vec<u8> = dynseq.into();
+        assert_eq!(out, seq.to_ascii_uppercase());
+
+        let dynseq = DynSeq::new(&seq, 2)?;
         let out: Vec<u8> = dynseq.into();
         assert_eq!(out, seq.to_ascii_uppercase());
 

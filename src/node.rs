@@ -52,6 +52,43 @@ impl Node {
         cocktail::kmer::kmer2seq(self.sequence(), self.len() as u8)
     }
 
+    /// Get nucleotide in ascii representation
+    pub fn get(&self, index: usize) -> core::option::Option<u8> {
+        self.get_bits(index).map(cocktail::kmer::bit2nuc)
+    }
+
+    /// Get nucleotide in bits representation
+    pub fn get_bits(&self, index: usize) -> core::option::Option<u64> {
+        if index >= self.len() as usize {
+            None
+        } else {
+            let corr_index = (self.len() - index as u64 - 1) * 2;
+
+            Some((self.sequence() >> corr_index) & 0b11)
+        }
+    }
+
+    /// Set nucleotide in ascii representation
+    pub fn set(&mut self, index: usize, nuc: u8) -> core::option::Option<()> {
+        self.set_bits(index, cocktail::kmer::nuc2bit(nuc))
+    }
+
+    /// Set nucleotide in bits representation
+    pub fn set_bits(&mut self, index: usize, value: u64) -> core::option::Option<()> {
+        if index >= self.len() as usize {
+            None
+        } else {
+            let corr_index = (self.len() - index as u64 - 1) * 2;
+            let mask_left = mask(self.len() as usize * 2, corr_index as usize + 2);
+            let mask_right = mask(corr_index as usize, 0);
+            let clean_mask = mask_left | (0b00 << corr_index) | mask_right;
+            let mask = value << corr_index;
+
+            self.set_sequence((self.sequence() & clean_mask) ^ mask);
+            Some(())
+        }
+    }
+
     /// Add nucleotide at end
     pub fn push_back(&mut self, nuc: u8) -> error::Result<()> {
         if self.len() > 28 {
@@ -83,21 +120,12 @@ impl Node {
         if self.len() as usize + nucs.len() > 29 {
             Err(error::Error::SeqToLargeForNode)
         } else {
-            println!("{} {}", index, self.len() * 2);
-
             let bin_index = (self.len() as usize * 2) - (index * 2);
 
             let begin =
                 (self.sequence() & mask((self.len() * 2) as usize, bin_index)) << (2 * nucs.len());
             let end = self.sequence() & mask(bin_index, 0);
             let middle = cocktail::kmer::seq2bit(nucs) << bin_index;
-
-            println!(
-                "{:058b}",
-                mask((self.len() * 2) as usize, bin_index) << (2 * nucs.len())
-            );
-            println!("{:058b}", mask(bin_index, 0));
-            println!("{:058b}", middle);
 
             self.set_sequence(begin | middle | end);
             self.set_length(self.len() + nucs.len() as u64);
@@ -145,6 +173,35 @@ mod tests {
             Node::new(&seq),
             Err(error::Error::SeqToLargeForNode)
         ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn get_set() -> error::Result<()> {
+        let mut rng = biotest::rand();
+        let generator = biotest::Sequence::builder()
+            .sequence_len(28)
+            .build()
+            .unwrap();
+        let mut seq = vec![];
+        generator.record(&mut seq, &mut rng).unwrap();
+
+        let mut node = Node::new(&seq)?;
+
+        for i in 0..28 {
+            assert_eq!(node.get(i), seq.to_ascii_uppercase().get(i).copied());
+        }
+
+        for (i, nuc) in seq.iter().rev().enumerate() {
+            assert!(node.set(i, *nuc).is_some());
+        }
+
+        seq.reverse();
+        assert_eq!(node.seq(), seq.to_ascii_uppercase());
+
+        assert!(node.get(28).is_none());
+        assert!(node.set(28, b'N').is_none());
 
         Ok(())
     }

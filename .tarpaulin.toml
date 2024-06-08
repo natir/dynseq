@@ -1,0 +1,6 @@
+[default]
+run-types = ["Lib", "Tests"]
+
+[report]
+out = ["Html"]
+output-dir = "target/tarpaulin/"

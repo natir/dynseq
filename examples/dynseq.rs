@@ -9,7 +9,7 @@
 use clap::Parser as _;
 
 /* project use */
-use dynbinseq::error;
+use dynseq::error;
 
 /// Example: A dynamic representation of biological sequence
 #[derive(clap::Parser, std::fmt::Debug)]

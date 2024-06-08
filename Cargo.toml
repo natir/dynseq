@@ -1,14 +1,14 @@
 [package]
-name = "dynbinseq"
+name = "dynseq"
 version = "0.1.0"
 authors = ["Pierre Marijon <pierre@marijon.fr>"]
 edition = "2021"
 description = "A dynamic representation of biological sequence"
 rust-version = "1.64"
 
-homepage = "https://github.com/natir/dynbinseq"
-repository = "https://github.com/natir/dynbinseq"
-documentation = "https://natir.github.io/dynbinseq/dynbinseq"
+homepage = "https://github.com/natir/dynseq"
+repository = "https://github.com/natir/dynseq"
+documentation = "https://natir.github.io/dynseq/dynseq"
 
 readme = "Readme.md"
 license-file = "LICENSE"
@@ -39,6 +39,11 @@ clap           = { version = "4", features = ["derive"] }
 
 # Logging management
 stderrlog      = { version = "0.5" }
+
+
+[[bench]]
+name = "benches"
+harness = false
 
 
 [profile.release]
